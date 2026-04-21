@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 from datetime import datetime
 from pathlib import Path
@@ -271,7 +272,7 @@ def fetch_predictions(patient_id: str) -> Optional[Dict[str, Any]]:
         print(f"[API] POST {url} → keys={list(data.keys())}")
         return data
     except Exception as e:
-        print(f"[API ERROR] POST {url} failed: {e}")
+        logging.warning(f"[API ERROR] POST {url} failed: {type(e).__name__}: {e}")
         return None
 
 
