@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # --- Python deps ---------------------------------------------------------
 # 0) scikit-learn pinned — saved joblib artifacts (stacking LR / calibrator)
 #    were trained on this version; unpinning risks pickle-compat warnings.
-RUN pip install "scikit-learn==1.4.2"
+RUN pip install "scikit-learn==1.8.0"
 
 # 1) CPU-only torch first (HF free Spaces have no GPU; CPU wheel is much smaller).
 #    Installing this before requirements.txt means the bare `torch` line in
