@@ -47,12 +47,6 @@ def download_models(
     resolved: list[str] = []
 
     for fname in file_list:
-        dest = target_dir / fname
-        if dest.exists():
-            print(f"[hf_model_loader] skip (already exists): {fname}")
-            resolved.append(str(dest))
-            continue
-
         print(f"[hf_model_loader] downloading {fname} from {repo_id} ...")
         path = hf_hub_download(
             repo_id=repo_id,
