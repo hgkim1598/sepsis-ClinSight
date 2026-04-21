@@ -1811,7 +1811,8 @@ def main() -> None:
     # 환자 목록 조회
     try:
         patient_ids = fetch_patients()
-    except Exception:
+    except Exception as e:
+        st.error(f"API 호출 실패: {e}")
         patient_ids = []
 
     # patient_id source of truth = st.session_state["patient_id"]
