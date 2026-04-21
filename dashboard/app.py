@@ -9,6 +9,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from api_client import (
+    API_BASE_URL,
     MODEL_KR_NAME,
     MODEL_ORDER,
     fetch_dashboard_data,
@@ -23,6 +24,9 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed",
 )
+
+# TODO: remove — temporary debug
+st.write(f"DEBUG API_BASE_URL: {API_BASE_URL}")
 
 # ── Palette ──────────────────────────────────────────────────
 T_PRIMARY   = "#0f172a"
