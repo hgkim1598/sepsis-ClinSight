@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import requests
+import streamlit as st
 from dotenv import load_dotenv
 
 from feature_labels import FEATURE_LABELS, get_feature_label
@@ -13,7 +14,10 @@ from feature_labels import FEATURE_LABELS, get_feature_label
 
 load_dotenv(Path(__file__).resolve().parent / ".env")
 
-API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
+try:
+    API_BASE_URL = st.secrets["API_BASE_URL"]
+except (KeyError, FileNotFoundError):
+    API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
 PATIENTS_ENDPOINT = "/patients"
 # FastAPI 예측 endpoint (4개 모델 결과 일괄 반환)
 PREDICT_ENDPOINT = "/predict/{patient_id}"
