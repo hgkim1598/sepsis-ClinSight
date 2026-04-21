@@ -7,3 +7,4 @@ __pycache__/
 *.pycmodels/
 
 models/
+s3_sample/
