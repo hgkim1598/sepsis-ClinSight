@@ -1839,6 +1839,7 @@ def main() -> None:
     predictions = None
     if selected_pid and not st.session_state["use_mock_data"]:
         cache = st.session_state["prediction_cache"]
+        logging.warning(f"[DEBUG] cache keys={list(cache.keys())}, selected_pid={selected_pid}, in_cache={selected_pid in cache}")
         if selected_pid not in cache:
             loading_placeholder = st.empty()
             loading_placeholder.markdown(
