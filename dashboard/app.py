@@ -1813,6 +1813,7 @@ def main() -> None:
         patient_ids = fetch_patients()
     except Exception as e:
         st.error(f"API 호출 실패: {e}")
+        st.error(f"[디버그] {e}")
         patient_ids = []
 
     # patient_id source of truth = st.session_state["patient_id"]
@@ -1886,7 +1887,8 @@ def main() -> None:
             dashboard_data["patient"]["patient_meta"] = patient_api.get(
                 "patient_meta", {}
             )
-        except Exception:
+        except Exception as e:
+            st.error(f"[디버그] {e}")
             dashboard_data.setdefault("patient", {}).setdefault("patient_meta", {})
 
     # 새로고침 시 last-updated가 실제로 갱신되도록 현재 시각을 stamp
