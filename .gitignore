@@ -4,4 +4,6 @@ env/
 .env
 ENV/
 __pycache__/
-*.pyc
+*.pycmodels/
+
+models/
