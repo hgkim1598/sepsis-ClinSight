@@ -15,7 +15,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
       build-essential \
       libgomp1 \
-      libhdf5-103 \
+      libhdf5-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # --- Python deps ---------------------------------------------------------
