@@ -1,6 +1,6 @@
 fastapi
 uvicorn
-boto3
+huggingface_hub
 pandas
 pyarrow
 numpy

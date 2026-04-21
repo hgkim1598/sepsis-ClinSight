@@ -1,57 +1,58 @@
-
+import os
 import json
-import boto3
-import pandas as pd
-from io import BytesIO
+from contextlib import asynccontextmanager
 from datetime import datetime
+from pathlib import Path
+
+import pandas as pd
 from fastapi import FastAPI, HTTPException
+
+from hf_model_loader import download_models
 from mortality.predict import predict_mortality
 from ARDS.ards_predict import predict_ards
 from SIC.sic_predict import predict_sic
-from mortality.predict import predict_mortality
 from AKI.aki_predict import predict_aki
 
 
+# demo/patients 디렉토리: 환경변수로 오버라이드 가능, 기본값은 레포 루트의 demo/patients
+_DEFAULT_DEMO_DIR = Path(__file__).resolve().parent.parent / "demo" / "patients"
+PATIENTS_DIR = Path(os.getenv("PATIENTS_DIR", str(_DEFAULT_DEMO_DIR)))
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # HF 리포에서 모델 파일 다운로드 (이미 있으면 스킵)
+    download_models()
+    yield
 
 
 app = FastAPI(
     title="Sepsis ICU Mortality Prediction API",
-    description="패혈증 ICU 환자 사망률 예측 파이프라인",
-    version="1.0.0"
+    description="패혈증 ICU 환자 사망률/ARDS/SIC/AKI 예측 파이프라인",
+    version="2.0.0",
+    lifespan=lifespan,
 )
-
-S3_BUCKET      = 'say2-1team'
-PATIENT_PREFIX = 'pipeline/patients'
-
-
-def _s3():
-    return boto3.client('s3')
 
 
 def _load_patient(patient_id: str):
-    s3     = _s3()
-    prefix = f'{PATIENT_PREFIX}/{patient_id}'
+    pdir = PATIENTS_DIR / patient_id
+    if not pdir.is_dir():
+        raise HTTPException(status_code=404, detail=f"환자 데이터 없음: {patient_id}")
 
     try:
-        # patient_meta
-        obj  = s3.get_object(Bucket=S3_BUCKET, Key=f'{prefix}/patient_meta.json')
-        meta = json.loads(obj['Body'].read())
+        with open(pdir / "patient_meta.json", encoding="utf-8") as f:
+            meta = json.load(f)
 
-        # datetime 복원
-        for key in ['intime', 'sepsis_onset_time', 'window_start_vital', 'window_start_lab', 'window_end']:
-            meta[key] = datetime.fromisoformat(meta[key])
+        for key in ["intime", "sepsis_onset_time", "window_start_vital", "window_start_lab", "window_end"]:
+            if key in meta and isinstance(meta[key], str):
+                meta[key] = datetime.fromisoformat(meta[key])
 
-        # vital_ts
-        obj      = s3.get_object(Bucket=S3_BUCKET, Key=f'{prefix}/vital_ts.parquet')
-        vital_ts = pd.read_parquet(BytesIO(obj['Body'].read()))
-
-        # lab_df
-        obj    = s3.get_object(Bucket=S3_BUCKET, Key=f'{prefix}/lab_df.parquet')
-        lab_df = pd.read_parquet(BytesIO(obj['Body'].read()))
-
+        vital_ts = pd.read_parquet(pdir / "vital_ts.parquet")
+        lab_df   = pd.read_parquet(pdir / "lab_df.parquet")
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=404, detail=f"환자 데이터 없음: {patient_id} ({e})")
+        raise HTTPException(status_code=500, detail=f"환자 데이터 로드 실패: {patient_id} ({e})")
 
     return meta, vital_ts, lab_df
 
@@ -59,12 +60,12 @@ def _load_patient(patient_id: str):
 # ── 환자 목록 ─────────────────────────────────────────────────
 @app.get("/patients")
 def list_patients():
-    s3  = _s3()
-    res = s3.list_objects_v2(Bucket=S3_BUCKET, Prefix=f'{PATIENT_PREFIX}/', Delimiter='/')
-    ids = [
-        p['Prefix'].split('/')[-2]
-        for p in res.get('CommonPrefixes', [])
-    ]
+    if not PATIENTS_DIR.is_dir():
+        return {"patients": []}
+    ids = sorted(
+        p.name for p in PATIENTS_DIR.iterdir()
+        if p.is_dir() and (p / "patient_meta.json").exists()
+    )
     return {"patients": ids}
 
 

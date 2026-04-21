@@ -1,15 +1,13 @@
 """
 ARDS 추론 파이프라인 설정.
-- S3 / 로컬 모델 경로
+- 로컬 모델 경로 / HF 리포
 - 관측 윈도우 / 피처 정의 (FEAT_COLS, STAT_RULES 등)
 """
 import os
 
-# ── S3 / 환경 설정 ────────────────────────────────────────────
-S3_BUCKET        = os.getenv('S3_BUCKET',        'say2-1team')
-MODEL_PREFIX     = os.getenv('MODEL_PREFIX',     'pipeline/final_model')
-USE_S3           = os.getenv('USE_S3', 'true').lower() == 'true'
-LOCAL_MODEL_PATH = os.getenv('LOCAL_MODEL_PATH', './models/ards')
+# ── 로컬 모델 경로 / HF 리포 ──────────────────────────────────
+LOCAL_MODEL_PATH = os.getenv('LOCAL_MODEL_PATH', '/app/models')
+HF_REPO_ID       = os.getenv('HF_REPO_ID', 'hgkim1598/sepsis-clinsight-models')
 
 ARTIFACT_FILENAME = 'ards_XGB.joblib'
 

@@ -1,10 +1,8 @@
 import os
 
-# ── S3 / 환경 설정 ────────────────────────────────────────────
-S3_BUCKET        = os.getenv('S3_BUCKET', 'say2-1team')
-MODEL_PREFIX     = os.getenv('MODEL_PREFIX', 'pipeline/final_model')
-USE_S3           = os.getenv('USE_S3', 'true').lower() == 'true'
-LOCAL_MODEL_PATH = os.getenv('LOCAL_MODEL_PATH', './models/aki')
+# ── 로컬 모델 경로 / HF 리포 ──────────────────────────────────
+LOCAL_MODEL_PATH = os.getenv('LOCAL_MODEL_PATH', '/app/models')
+HF_REPO_ID       = os.getenv('HF_REPO_ID', 'hgkim1598/sepsis-clinsight-models')
 THRESHOLD        = 0.5
 SEQ_LEN          = 12
 

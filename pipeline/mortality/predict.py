@@ -10,7 +10,6 @@ from datetime import datetime, timezone
 from config import THRESHOLD, FEAT_COLS, FEAT_UNITS
 from loader import get_models
 from preprocess import preprocess_timeseries, preprocess_static
-from history import load_latest, save_result, compute_changes
 
 CLINICAL_REFERENCE = {
     'ventilation': {
@@ -86,9 +85,8 @@ def predict_mortality(
     shap_values = explainer.shap_values(x_static)[0]
     shap_idx    = {f: i for i, f in enumerate(FEAT_COLS)}
 
-    # ── 이력 로드 + 변화값 계산 ───────────────────────────────
-    previous = load_latest(patient_id) if patient_id else None
-    changes  = compute_changes(feats, previous)
+    # 이력 비교 기능은 S3 제거와 함께 비활성화됨
+    changes: dict = {}
 
     # ── feature_values 구성 (age 제외) ───────────────────────
     feature_values = []
@@ -139,8 +137,5 @@ def predict_mortality(
              'top_features':   top_features,
         }
     }
-
-    if patient_id:
-        save_result(patient_id, result)
 
     return result
