@@ -1866,11 +1866,8 @@ def main() -> None:
             finally:
                 loading_placeholder.empty()
         predictions = cache.get(selected_pid)
-        print(f"[DEBUG] predictions fetched for {selected_pid}: "
-              f"keys={list(predictions.keys()) if predictions else None}")
-        print("[RESPONSE]", json.dumps(
-            predictions, indent=2, ensure_ascii=False, default=str
-        ))
+        logging.warning(f"[DEBUG] predictions fetched for {selected_pid}: keys={list(predictions.keys()) if predictions else None}")
+        logging.warning(f"[DEBUG] predictions is None: {predictions is None}")
 
     dashboard_data = fetch_dashboard_data(
         use_mock_override=bool(st.session_state["use_mock_data"]),
