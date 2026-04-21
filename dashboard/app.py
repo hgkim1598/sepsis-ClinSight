@@ -1830,7 +1830,10 @@ def main() -> None:
     if selected_pid and st.query_params.get("patient_id") != selected_pid:
         st.query_params["patient_id"] = selected_pid
 
-    print(f"[DEBUG] selected_pid={selected_pid}")
+    import logging
+    logging.warning(f"[DEBUG] selected_pid={selected_pid}")
+    logging.warning(f"[DEBUG] use_mock_data={st.session_state['use_mock_data']}")
+    logging.warning(f"[DEBUG] patient_ids={patient_ids}")
 
     # 예측 API 호출 (환자별 캐시). use_mock_data=True면 호출 생략.
     predictions = None
