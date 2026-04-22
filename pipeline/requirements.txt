@@ -1,23 +1,30 @@
 # Backend runtime deps for pipeline/api.py (FastAPI + 4 inference models).
 # Used by Dockerfile `RUN pip install -r /app/pipeline/requirements.txt`.
 #
-# NOTE: Dockerfile explicitly installs numpy / torch / scikit-learn / xgboost
-# / tensorflow / keras BEFORE this file to lock ABI-critical versions. The
-# pins below match those so pip treats them as already-satisfied here.
-# tensorflow / keras / scikit-learn are Dockerfile-only and intentionally
-# absent from this file (not required for local non-AKI dev workflows).
+# Versions mirror the team's training/.venv pip-freeze so inference runs in
+# the same environment the artifacts were produced in. Dockerfile installs
+# numpy / torch (CPU wheel) / tensorflow / keras / scikit-learn explicitly
+# BEFORE this file; the matching pins below keep pip's resolver a no-op on
+# those lines.
 
-# --- ABI-critical (must match Dockerfile pins) ---------------------------
-numpy==1.26.4
-torch==2.2.2
+# --- ABI-critical, also explicitly installed in Dockerfile ---------------
+numpy==2.4.4
+torch==2.11.0
+tensorflow==2.21.0
+keras==3.14.0
+scikit-learn==1.8.0
+
+# --- Model / SHAP runtime ------------------------------------------------
 xgboost==3.2.0
+shap==0.51.0
+scipy==1.17.1
+joblib==1.5.3
 
-# --- Unpinned runtime deps -----------------------------------------------
-fastapi
-uvicorn
-huggingface_hub
-pandas
-pyarrow
-scipy
-shap
-joblib
+# --- Data IO -------------------------------------------------------------
+pandas==3.0.2
+pyarrow==23.0.1
+
+# --- Web / HF ------------------------------------------------------------
+fastapi==0.135.3
+uvicorn==0.44.0
+huggingface_hub==1.11.0
