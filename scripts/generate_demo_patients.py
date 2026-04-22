@@ -229,9 +229,24 @@ def build_labs(sc: Scenario, rng: np.random.Generator) -> pd.DataFrame:
     return df
 
 
+DEMO_NAMES = {
+    "DEMO_001": "김영호",
+    "DEMO_002": "이정숙",
+    "DEMO_003": "박철수",
+    "DEMO_004": "최미경",
+    "DEMO_005": "정성훈",
+    "DEMO_006": "강혜진",
+    "DEMO_007": "윤기태",
+    "DEMO_008": "임지현",
+    "DEMO_009": "한승우",
+    "DEMO_010": "송만식",
+}
+
+
 def build_meta(sc: Scenario) -> dict:
     meta = {
         "patient_id": sc.demo_id,
+        "name": DEMO_NAMES.get(sc.demo_id, ""),
         "age": sc.age,
         "gender": sc.gender,
         "label": 1,  # all scenarios are confirmed sepsis

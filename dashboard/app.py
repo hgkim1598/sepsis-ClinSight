@@ -9,7 +9,6 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from api_client import (
-    API_BASE_URL,
     MODEL_KR_NAME,
     MODEL_ORDER,
     fetch_dashboard_data,
@@ -24,9 +23,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed",
 )
-
-# TODO: remove — temporary debug
-st.write(f"DEBUG API_BASE_URL: {API_BASE_URL}")
 
 # ── Palette ──────────────────────────────────────────────────
 T_PRIMARY   = "#0f172a"
@@ -1170,8 +1166,14 @@ def render_patient_bar(data: dict) -> None:
     p = data.get("patient", {})
     meta = p.get("patient_meta", {}) or {}
 
-    # 하드코딩(회색): 환자명 — API에 없어서 mock 값 유지
-    name = html.escape(str(p.get("name", "-")))
+    # 환자명 — patient_meta에 있으면 API 값(검은색), 없으면 mock(회색)
+    name_api = meta.get("name")
+    if name_api not in (None, "", "None"):
+        name = html.escape(str(name_api))
+        name_is_api = True
+    else:
+        name = html.escape(str(p.get("name", "-")))
+        name_is_api = False
     # SOFA 점수: patient_meta에 있으면 API 값(검은색), 없으면 mock(회색)
     sofa_api = meta.get("sofa_score")
     if sofa_api not in (None, "", "None"):
@@ -1200,7 +1202,7 @@ def render_patient_bar(data: dict) -> None:
         <div class="patient-bar">
           <div class="pb-item">
             <span class="pb-label">환자</span>
-            <span class="pb-value pb-name" style="{hc_style}">{name}</span>
+            <span class="pb-value pb-name" style="{api_style if name_is_api else hc_style}">{name}</span>
           </div>
           <div class="pb-divider"></div>
           <div class="pb-item">
@@ -1811,9 +1813,7 @@ def main() -> None:
     # 환자 목록 조회
     try:
         patient_ids = fetch_patients()
-    except Exception as e:
-        st.error(f"API 호출 실패: {e}")
-        st.error(f"[디버그] {e}")
+    except Exception:
         patient_ids = []
 
     # patient_id source of truth = st.session_state["patient_id"]
@@ -1830,16 +1830,10 @@ def main() -> None:
     if selected_pid and st.query_params.get("patient_id") != selected_pid:
         st.query_params["patient_id"] = selected_pid
 
-    import logging
-    logging.warning(f"[DEBUG] selected_pid={selected_pid}")
-    logging.warning(f"[DEBUG] use_mock_data={st.session_state['use_mock_data']}")
-    logging.warning(f"[DEBUG] patient_ids={patient_ids}")
-
     # 예측 API 호출 (환자별 캐시). use_mock_data=True면 호출 생략.
     predictions = None
     if selected_pid and not st.session_state["use_mock_data"]:
         cache = st.session_state["prediction_cache"]
-        logging.warning(f"[DEBUG] cache keys={list(cache.keys())}, selected_pid={selected_pid}, in_cache={selected_pid in cache}")
         if selected_pid not in cache:
             loading_placeholder = st.empty()
             loading_placeholder.markdown(
@@ -1867,8 +1861,6 @@ def main() -> None:
             finally:
                 loading_placeholder.empty()
         predictions = cache.get(selected_pid)
-        logging.warning(f"[DEBUG] predictions fetched for {selected_pid}: keys={list(predictions.keys()) if predictions else None}")
-        logging.warning(f"[DEBUG] predictions is None: {predictions is None}")
 
     dashboard_data = fetch_dashboard_data(
         use_mock_override=bool(st.session_state["use_mock_data"]),
@@ -1888,8 +1880,7 @@ def main() -> None:
             dashboard_data["patient"]["patient_meta"] = patient_api.get(
                 "patient_meta", {}
             )
-        except Exception as e:
-            st.error(f"[디버그] {e}")
+        except Exception:
             dashboard_data.setdefault("patient", {}).setdefault("patient_meta", {})
 
     # 새로고침 시 last-updated가 실제로 갱신되도록 현재 시각을 stamp
